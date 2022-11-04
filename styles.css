@@ -104,6 +104,8 @@ h2 {
   color: inherit;
   text-transform: uppercase;
   padding-left: 35px;
+  position: absolute;
+  opacity: 0.3;
 }
 #author span {
   font-size: 10px;

@@ -424,6 +424,7 @@ function reset() {
 
 function start() {
   isGameActive = true;
+  KEY.ArrowRight = true;
   backgroundSound.play();
 }
 

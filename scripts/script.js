@@ -4,20 +4,28 @@ let dom_canvas = document.createElement("canvas");
 document.querySelector("#canvas").appendChild(dom_canvas);
 let CTX = dom_canvas.getContext("2d");
 
-const W = (dom_canvas.width = 600);
-const H = (dom_canvas.height = 560);
+const foodSound = document.getElementById('food-sound');
+foodSound.loop = false;
+foodSound.volume = 0.3;
+
+const backgroundSound = document.getElementById('background-sound');
+backgroundSound.loop = true;
+backgroundSound.volume = 0.1;
+
+const W = (dom_canvas.width = 500);
+const H = (dom_canvas.height = 500);
 
 let snake,
   food,
   currentHue,
-  cells = 30,
+  cells = 20,
   cellSize,
   isGameOver = false,
   tails = [],
   score = 00,
   maxScore = window.localStorage.getItem("maxScore") || undefined,
   particles = [],
-  splashingParticleCount = 30,
+  splashingParticleCount = 20,
   cellsCount,
   requestID;
 
@@ -205,6 +213,8 @@ class Snake {
   }
   controlls() {
     let dir = this.size;
+    if (!isGameActive) return
+
     if (KEY.ArrowUp) {
       this.dir = new helpers.Vec(0, -dir);
     }
@@ -232,6 +242,9 @@ class Snake {
     this.controlls();
     if (!this.delay--) {
       if (helpers.isCollision(this.pos, food.pos)) {
+        foodSound.play();
+        foodSound.currentTime = 0;
+        
         incrementScore();
         particleSplash();
         food.spawn();
@@ -331,6 +344,8 @@ function clear() {
   CTX.clearRect(0, 0, W, H);
 }
 
+let isGameActive = false
+
 function initialize() {
   CTX.imageSmoothingEnabled = false;
   KEY.listen();
@@ -338,12 +353,28 @@ function initialize() {
   cellSize = W / cells;
   snake = new Snake();
   food = new Food();
-  dom_replay.addEventListener("click", reset, false);
+
+  if (!isGameActive) {
+    dom_replay.innerText = 'START'
+    dom_replay.addEventListener("click", start, false);
+  } else {
+    dom_replay.innerText = 'RESTART'
+    dom_replay.addEventListener("click", reset, false);
+  }
   loop();
 }
 
 function loop() {
   clear();
+
+  if (!isGameActive) {
+    dom_replay.innerText = 'START'
+    dom_replay.addEventListener("click", start, false);
+  } else {
+    dom_replay.innerText = 'RESTART'
+    dom_replay.addEventListener("click", reset, false);
+  }
+
   if (!isGameOver) {
     requestID = setTimeout(loop, 1000 / 60);
     helpers.drawGrid();
@@ -359,6 +390,13 @@ function loop() {
   }
 }
 
+function stopSounds() {
+  foodSound.pause();
+  foodSound.currentTime = 0;
+  backgroundSound.pause();
+  backgroundSound.currentTime = 0;
+}
+
 function gameOver() {
   maxScore ? null : (maxScore = score);
   score > maxScore ? (maxScore = score) : null;
@@ -370,6 +408,7 @@ function gameOver() {
   CTX.font = "15px Poppins, sans-serif";
   CTX.fillText(`SCORE   ${score}`, W / 2, H / 2 + 60);
   CTX.fillText(`MAXSCORE   ${maxScore}`, W / 2, H / 2 + 80);
+  stopSounds();
 }
 
 function reset() {
@@ -383,4 +422,11 @@ function reset() {
   loop();
 }
 
+function start() {
+  isGameActive = true;
+  backgroundSound.play();
+}
+
 initialize();
+
+console.log(isGameOver)
